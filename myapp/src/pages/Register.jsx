@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Users, User, Mail, Lock, UserPlus, AlertCircle, CheckCircle2, Eye, EyeOff, ShieldCheck, Sparkles } from 'lucide-react';
+import { Users, User, Mail, Lock, UserPlus, LogIn, AlertCircle, CheckCircle2, Eye, EyeOff, ShieldCheck, Sparkles, ArrowRight, KeyRound } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 
@@ -9,6 +9,7 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
@@ -56,15 +57,27 @@ const Register = () => {
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError('Passwords do not match. Please re-enter.');
+      return;
+    }
+
+    if (!termsAccepted) {
+      setError('Please accept the Terms of Service to continue.');
       return;
     }
 
     setLoading(true);
     try {
-      await register({ name: name.trim(), email: email.trim(), password });
-      showToast('success', 'Account Created!', 'Welcome to Social Connect. Set up your profile now.');
-      navigate('/create-profile');
+      // Register account (without autoLogin session so user follows register -> login flow)
+      await register({ name: name.trim(), email: email.trim(), password }, false);
+      showToast('success', 'Account Registered!', 'Your account has been created. Please sign in with your password.');
+      navigate('/login', {
+        state: {
+          registeredEmail: email.trim(),
+          name: name.trim(),
+          justRegistered: true
+        }
+      });
     } catch (err) {
       setError(err.message || 'Registration failed');
       showToast('error', 'Registration Failed', err.message || 'Please try another email.');
@@ -76,17 +89,30 @@ const Register = () => {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        {/* Brand Header with Glowing Icon */}
+        {/* Brand Header */}
         <div className="auth-header">
-          <Link to="/" style={{ display: 'inline-block', textDecoration: 'none' }} aria-label="Home">
+          <Link to="/" style={{ display: 'inline-block', textDecoration: 'none' }} aria-label="Social Connect Home">
             <div className="auth-badge-logo">
               <Users size={26} strokeWidth={2.2} />
             </div>
           </Link>
-          <h2>Create your account</h2>
+          <h2>Create Account</h2>
           <p>Join Gujarat's vibrant social discovery community today</p>
         </div>
 
+        {/* Auth Navigation Tabs (Sign In / Register) */}
+        <div className="auth-tabs" role="tablist" aria-label="Authentication Options">
+          <Link to="/login" className="auth-tab" role="tab" aria-selected="false">
+            <LogIn size={16} />
+            <span>Sign In</span>
+          </Link>
+          <Link to="/register" className="auth-tab active" role="tab" aria-selected="true">
+            <UserPlus size={16} />
+            <span>Create Account</span>
+          </Link>
+        </div>
+
+        {/* Error Alert */}
         {error && (
           <div className="alert alert-error" style={{ marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10, borderRadius: 'var(--radius-md)' }}>
             <AlertCircle size={18} style={{ flexShrink: 0 }} />
@@ -105,10 +131,11 @@ const Register = () => {
                 id="reg-name"
                 type="text"
                 className="form-input"
-                style={{ paddingLeft: 42, height: 46, borderRadius: 'var(--radius-md)' }}
+                style={{ paddingLeft: 42, height: 48, borderRadius: 'var(--radius-md)' }}
                 placeholder="e.g. Ronak Patel"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                autoComplete="name"
                 required
               />
               <User
@@ -128,8 +155,8 @@ const Register = () => {
                 id="reg-email"
                 type="email"
                 className="form-input"
-                style={{ paddingLeft: 42, height: 46, borderRadius: 'var(--radius-md)' }}
-                placeholder="ronak@example.com"
+                style={{ paddingLeft: 42, height: 48, borderRadius: 'var(--radius-md)' }}
+                placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
@@ -159,7 +186,7 @@ const Register = () => {
                 id="reg-password"
                 type={showPassword ? 'text' : 'password'}
                 className="form-input"
-                style={{ paddingLeft: 42, paddingRight: 42, height: 46, borderRadius: 'var(--radius-md)' }}
+                style={{ paddingLeft: 42, paddingRight: 42, height: 48, borderRadius: 'var(--radius-md)' }}
                 placeholder="At least 6 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -210,7 +237,7 @@ const Register = () => {
           </div>
 
           {/* Confirm Password */}
-          <div className="form-group" style={{ marginBottom: 20 }}>
+          <div className="form-group" style={{ marginBottom: 18 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
               <label className="form-label" htmlFor="reg-confirm-password" style={{ margin: 0, fontSize: 'var(--text-xs)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Confirm Password
@@ -234,7 +261,7 @@ const Register = () => {
                 style={{
                   paddingLeft: 42,
                   paddingRight: 42,
-                  height: 46,
+                  height: 48,
                   borderRadius: 'var(--radius-md)',
                   borderColor: passwordsMismatch ? '#ef4444' : (passwordsMatch ? '#10b981' : undefined)
                 }}
@@ -269,6 +296,20 @@ const Register = () => {
             </div>
           </div>
 
+          {/* Terms & Conditions Checkbox */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 20 }}>
+            <input
+              type="checkbox"
+              id="terms-check"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              style={{ accentColor: 'var(--primary)', width: 16, height: 16, marginTop: 2, cursor: 'pointer' }}
+            />
+            <label htmlFor="terms-check" style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', cursor: 'pointer', lineHeight: 1.4 }}>
+              I agree to the <span style={{ color: 'var(--primary)', fontWeight: 600 }}>Terms of Service</span> and <span style={{ color: 'var(--primary)', fontWeight: 600 }}>Privacy Policy</span>.
+            </label>
+          </div>
+
           {/* Submit Button */}
           <button
             type="submit"
@@ -293,28 +334,48 @@ const Register = () => {
           </button>
         </form>
 
+        {/* Already have an account Callout */}
+        <div className="auth-callout-register" style={{ marginTop: 24 }}>
+          <div>
+            <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)' }}>
+              Already registered?
+            </div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+              Sign in with your email and password.
+            </div>
+          </div>
+          <Link
+            to="/login"
+            className="btn btn-sm btn-secondary"
+            style={{
+              borderRadius: 'var(--radius-md)',
+              fontWeight: 700,
+              fontSize: 'var(--text-xs)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <span>Sign In</span>
+            <ArrowRight size={13} />
+          </Link>
+        </div>
+
         {/* Security / Community Trust Badges */}
         <div className="auth-trust-badges">
           <div className="auth-trust-item">
             <ShieldCheck size={14} style={{ color: 'var(--success)' }} />
-            <span>100% Private</span>
+            <span>256-bit Encrypted</span>
           </div>
           <div className="auth-trust-item">
             <Sparkles size={14} style={{ color: 'var(--gold)' }} />
             <span>Verified Profiles</span>
           </div>
           <div className="auth-trust-item">
-            <Users size={14} style={{ color: 'var(--primary)' }} />
+            <KeyRound size={14} style={{ color: 'var(--primary)' }} />
             <span>Free to Join</span>
           </div>
-        </div>
-
-        {/* Footer Link */}
-        <div className="auth-footer" style={{ marginTop: 20, textAlign: 'center', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-          Already have an account?{' '}
-          <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'none' }}>
-            Sign In
-          </Link>
         </div>
       </div>
     </div>

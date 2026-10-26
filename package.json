@@ -1,0 +1,12 @@
+{
+  "name": "social-connect-root",
+  "version": "1.0.0",
+  "description": "Social Connect — Fullstack App with React Frontend and MongoDB/Express Backend",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd myapp && npm run dev",
+    "dev": "node -e \"const { spawn } = require('child_process'); spawn('npm', ['run', 'dev'], { cwd: 'backend', shell: true, stdio: 'inherit' }); spawn('npm', ['run', 'dev'], { cwd: 'myapp', shell: true, stdio: 'inherit' });\"",
+    "install:all": "cd myapp && npm install && cd ../backend && npm install"
+  }
+}

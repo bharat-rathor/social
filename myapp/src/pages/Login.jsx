@@ -1,69 +1,113 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Users, Mail, Lock, LogIn, AlertCircle, Eye, EyeOff, ShieldCheck, Sparkles, Zap } from 'lucide-react';
+import { Users, Mail, Lock, LogIn, AlertCircle, Eye, EyeOff, ShieldCheck, Sparkles, CheckCircle2, UserPlus, ArrowRight, KeyRound } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const { showToast } = useNotification();
+
+  const registeredEmail = location.state?.registeredEmail || '';
+  const registeredName = location.state?.name || '';
+  const justRegistered = !!location.state?.justRegistered;
+
+  const [email, setEmail] = useState(registeredEmail);
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
-  const { showToast } = useNotification();
-  const navigate = useNavigate();
-  const location = useLocation();
-
   const from = location.state?.from?.pathname || '/home';
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    if (registeredEmail) {
+      setEmail(registeredEmail);
+    }
+  }, [registeredEmail]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (!email.trim() || !password.trim()) {
-      setError('Please fill in both email and password.');
+    if (!email.trim()) {
+      setError('Please enter your email address.');
+      return;
+    }
+
+    if (!password.trim()) {
+      setError('Please enter your password.');
       return;
     }
 
     setLoading(true);
     try {
-      const user = login({ email: email.trim(), password });
+      const user = await login({ email: email.trim(), password });
       showToast('success', 'Welcome Back!', `Signed in as ${user.name}`);
+      
       if (user.isProfileComplete === false) {
         navigate('/create-profile');
       } else {
         navigate(from, { replace: true });
       }
     } catch (err) {
-      setError(err.message || 'Failed to login');
-      showToast('error', 'Login Failed', err.message || 'Invalid credentials');
+      setError(err.message || 'Failed to login. Please verify your credentials.');
+      showToast('error', 'Login Failed', err.message || 'Invalid email or password.');
     } finally {
       setLoading(false);
     }
   };
 
-  const fillDemoAccount = (demoEmail, demoPass) => {
-    setEmail(demoEmail);
-    setPassword(demoPass);
-    setError('');
+  const handleForgotPassword = (e) => {
+    e.preventDefault();
+    showToast('info', 'Password Recovery', 'For account recovery assistance, please reach out to support@socialconnect.local with your registered email.');
   };
 
   return (
     <div className="auth-page">
       <div className="auth-card">
-        {/* Brand Header with Glowing Icon */}
+        {/* Brand Header */}
         <div className="auth-header">
-          <Link to="/" style={{ display: 'inline-block', textDecoration: 'none' }} aria-label="Home">
+          <Link to="/" style={{ display: 'inline-block', textDecoration: 'none' }} aria-label="Social Connect Home">
             <div className="auth-badge-logo">
               <Users size={26} strokeWidth={2.2} />
             </div>
           </Link>
-          <h2>Welcome back</h2>
-          <p>Connect with people in your neighborhood and city</p>
+          <h2>Welcome Back</h2>
+          <p>Sign in to access your profile, chats, and connections</p>
         </div>
 
+        {/* Auth Navigation Tabs (Sign In / Register) */}
+        <div className="auth-tabs" role="tablist" aria-label="Authentication Options">
+          <Link to="/login" className="auth-tab active" role="tab" aria-selected="true">
+            <LogIn size={16} />
+            <span>Sign In</span>
+          </Link>
+          <Link to="/register" className="auth-tab" role="tab" aria-selected="false">
+            <UserPlus size={16} />
+            <span>Create Account</span>
+          </Link>
+        </div>
+
+        {/* Celebration Banner when user arrives after registering */}
+        {justRegistered && (
+          <div className="auth-banner-success">
+            <CheckCircle2 size={20} style={{ color: '#10b981', flexShrink: 0, marginTop: 2 }} />
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: '#065f46', marginBottom: 2 }}>
+                {registeredName ? `Welcome, ${registeredName}!` : 'Account Registered Successfully!'}
+              </div>
+              <div style={{ fontSize: 'var(--text-xs)', color: '#047857' }}>
+                Your account is ready. Please enter your password to sign in.
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error Alert */}
         {error && (
           <div className="alert alert-error" style={{ marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10, borderRadius: 'var(--radius-md)' }}>
             <AlertCircle size={18} style={{ flexShrink: 0 }} />
@@ -71,9 +115,10 @@ const Login = () => {
           </div>
         )}
 
+        {/* Main Login Form */}
         <form onSubmit={handleSubmit} noValidate>
           {/* Email Address */}
-          <div className="form-group" style={{ marginBottom: 16 }}>
+          <div className="form-group" style={{ marginBottom: 18 }}>
             <label className="form-label" htmlFor="login-email" style={{ fontSize: 'var(--text-xs)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               Email Address
             </label>
@@ -82,8 +127,8 @@ const Login = () => {
                 id="login-email"
                 type="email"
                 className="form-input"
-                style={{ paddingLeft: 42, height: 46, borderRadius: 'var(--radius-md)' }}
-                placeholder="name@example.com"
+                style={{ paddingLeft: 42, height: 48, borderRadius: 'var(--radius-md)' }}
+                placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
@@ -97,16 +142,34 @@ const Login = () => {
           </div>
 
           {/* Password */}
-          <div className="form-group" style={{ marginBottom: 20 }}>
-            <label className="form-label" htmlFor="login-password" style={{ fontSize: 'var(--text-xs)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Password
-            </label>
+          <div className="form-group" style={{ marginBottom: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <label className="form-label" htmlFor="login-password" style={{ margin: 0, fontSize: 'var(--text-xs)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Password
+              </label>
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  fontSize: 'var(--text-xs)',
+                  color: 'var(--primary)',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  textDecoration: 'none'
+                }}
+              >
+                Forgot Password?
+              </button>
+            </div>
             <div style={{ position: 'relative' }}>
               <input
                 id="login-password"
                 type={showPassword ? 'text' : 'password'}
                 className="form-input"
-                style={{ paddingLeft: 42, paddingRight: 42, height: 46, borderRadius: 'var(--radius-md)' }}
+                style={{ paddingLeft: 42, paddingRight: 42, height: 48, borderRadius: 'var(--radius-md)' }}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -142,6 +205,19 @@ const Login = () => {
             </div>
           </div>
 
+          {/* Remember Me Checkbox */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }}>
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                style={{ accentColor: 'var(--primary)', width: 16, height: 16, cursor: 'pointer' }}
+              />
+              <span>Remember this device</span>
+            </label>
+          </div>
+
           {/* Submit Button */}
           <button
             type="submit"
@@ -166,49 +242,48 @@ const Login = () => {
           </button>
         </form>
 
-        {/* Demo Fast Logins for Testing & Viva */}
-        <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid var(--border)' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', marginBottom: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Quick Demo Accounts (1-Click)
+        {/* New to Platform Callout */}
+        <div className="auth-callout-register" style={{ marginTop: 24 }}>
+          <div>
+            <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)' }}>
+              New to Social Connect?
+            </div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+              Create an account first to start connecting.
+            </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <button
-              type="button"
-              className="btn btn-sm btn-secondary"
-              onClick={() => fillDemoAccount('rahul@demo.com', 'demo123')}
-              style={{ borderRadius: 'var(--radius-md)', fontWeight: 600 }}
-            >
-              <Zap size={14} /> Rahul (Free)
-            </button>
-            <button
-              type="button"
-              className="btn btn-sm btn-gold"
-              onClick={() => fillDemoAccount('priya@demo.com', 'demo123')}
-              style={{ borderRadius: 'var(--radius-md)', fontWeight: 600 }}
-            >
-              <Sparkles size={14} /> Priya (Premium)
-            </button>
-          </div>
+          <Link
+            to="/register"
+            className="btn btn-sm btn-secondary"
+            style={{
+              borderRadius: 'var(--radius-md)',
+              fontWeight: 700,
+              fontSize: 'var(--text-xs)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <span>Register</span>
+            <ArrowRight size={13} />
+          </Link>
         </div>
 
         {/* Security / Community Trust Badges */}
         <div className="auth-trust-badges">
           <div className="auth-trust-item">
             <ShieldCheck size={14} style={{ color: 'var(--success)' }} />
-            <span>100% Private</span>
+            <span>256-bit Encrypted</span>
           </div>
           <div className="auth-trust-item">
             <Sparkles size={14} style={{ color: 'var(--gold)' }} />
             <span>Verified Profiles</span>
           </div>
-        </div>
-
-        {/* Footer Link */}
-        <div className="auth-footer" style={{ marginTop: 20, textAlign: 'center', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-          Don't have an account?{' '}
-          <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'none' }}>
-            Sign up for free
-          </Link>
+          <div className="auth-trust-item">
+            <KeyRound size={14} style={{ color: 'var(--primary)' }} />
+            <span>Secure Auth</span>
+          </div>
         </div>
       </div>
     </div>

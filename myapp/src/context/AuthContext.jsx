@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(false);
   }, []);
 
-  const register = async ({ name, email, password }) => {
+  const register = async ({ name, email, password }, autoLogin = false) => {
     let newUser;
     try {
       newUser = await apiRegister({ name, email, password, image: DEFAULT_USER_PHOTO });
@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }) => {
         bio: '',
         interests: [],
         image: DEFAULT_USER_PHOTO,
-        online: true,
+        online: false,
         lastSeen: null,
         isPremium: false,
         isProfileComplete: false,
@@ -73,9 +73,12 @@ export const AuthProvider = ({ children }) => {
     const currentUsers = getData('users', DEMO_USERS);
     const updatedUsers = [...currentUsers.filter(u => u.id !== newUser.id), newUser];
     setData('users', updatedUsers);
-    setData('currentUser', newUser);
-    setData('current_user', newUser);
-    setCurrentUser(newUser);
+
+    if (autoLogin) {
+      setData('currentUser', newUser);
+      setData('current_user', newUser);
+      setCurrentUser(newUser);
+    }
     return newUser;
   };
 

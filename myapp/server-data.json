@@ -533,6 +533,28 @@
       "isPremium": false,
       "isProfileComplete": true,
       "createdAt": "2026-10-07T01:32:39.381Z"
+    },
+    {
+      "id": 1793029218790,
+      "name": "yash",
+      "email": "yashrathaur14@gmail.com",
+      "password": "bharat1234",
+      "age": 23,
+      "gender": "Male",
+      "preference": "All",
+      "area": "Satellite",
+      "city": "Ahmedabad",
+      "bio": "i am good",
+      "interests": [
+        "Movies"
+      ],
+      "image": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80",
+      "album": [],
+      "online": true,
+      "lastSeen": null,
+      "isPremium": false,
+      "isProfileComplete": true,
+      "createdAt": "2026-10-26T15:40:18.790Z"
     }
   ],
   "messages": [
@@ -562,7 +584,7 @@
       "image": null,
       "timestamp": "2026-10-07T00:14:41.865Z",
       "status": "sent",
-      "seen": false
+      "seen": true
     },
     {
       "id": "msg_1791332081865_n7d0y",
@@ -572,7 +594,7 @@
       "image": null,
       "timestamp": "2026-10-07T00:14:41.865Z",
       "status": "sent",
-      "seen": false
+      "seen": true
     },
     {
       "id": "msg_1791332096052_50vvb",
@@ -582,7 +604,7 @@
       "image": null,
       "timestamp": "2026-10-07T00:14:56.052Z",
       "status": "sent",
-      "seen": false
+      "seen": true
     },
     {
       "id": "msg_1791332096052_50vvb",
@@ -592,7 +614,7 @@
       "image": null,
       "timestamp": "2026-10-07T00:14:56.052Z",
       "status": "sent",
-      "seen": false
+      "seen": true
     },
     {
       "id": "msg_1791332102726_7xach",
@@ -602,7 +624,7 @@
       "image": null,
       "timestamp": "2026-10-07T00:15:02.726Z",
       "status": "sent",
-      "seen": false
+      "seen": true
     },
     {
       "id": "msg_1791332102726_7xach",
@@ -612,7 +634,7 @@
       "image": null,
       "timestamp": "2026-10-07T00:15:02.726Z",
       "status": "sent",
-      "seen": false
+      "seen": true
     },
     {
       "id": "msg_1791336717660_26pwr",
@@ -653,6 +675,66 @@
       "timestamp": "2026-10-07T01:33:02.734Z",
       "status": "sent",
       "seen": true
+    },
+    {
+      "id": "msg_1791359939083_klje1",
+      "senderId": 1791336759380,
+      "receiverId": 1791330914799,
+      "message": "mehul",
+      "image": null,
+      "timestamp": "2026-10-07T07:58:59.083Z",
+      "status": "sent",
+      "seen": true
+    },
+    {
+      "id": "msg_1791359939083_klje1",
+      "senderId": 1791336759380,
+      "receiverId": 1791330914799,
+      "message": "mehul",
+      "image": null,
+      "timestamp": "2026-10-07T07:58:59.083Z",
+      "status": "sent",
+      "seen": true
+    },
+    {
+      "id": "msg_1791359975462_5gbiv",
+      "senderId": 1791330914799,
+      "receiverId": 1791336759380,
+      "message": "kaise ho",
+      "image": null,
+      "timestamp": "2026-10-07T07:59:35.462Z",
+      "status": "sent",
+      "seen": true
+    },
+    {
+      "id": "msg_1791359975462_5gbiv",
+      "senderId": 1791330914799,
+      "receiverId": 1791336759380,
+      "message": "kaise ho",
+      "image": null,
+      "timestamp": "2026-10-07T07:59:35.462Z",
+      "status": "sent",
+      "seen": true
+    },
+    {
+      "id": "msg_1793029255613_e5mok",
+      "senderId": 1793029218790,
+      "receiverId": 2,
+      "message": "📞 Missed Video Call",
+      "image": null,
+      "timestamp": "2026-10-26T15:40:55.613Z",
+      "status": "sent",
+      "seen": false
+    },
+    {
+      "id": "msg_1793029255613_e5mok",
+      "senderId": 1793029218790,
+      "receiverId": 2,
+      "message": "📞 Missed Video Call",
+      "image": null,
+      "timestamp": "2026-10-26T15:40:55.613Z",
+      "status": "sent",
+      "seen": false
     }
   ],
   "likes": {},

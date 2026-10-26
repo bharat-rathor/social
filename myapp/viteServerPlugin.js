@@ -5,6 +5,7 @@
 // ============================================================
 import fs from 'fs';
 import path from 'path';
+import http from 'http';
 
 export function socialServerPlugin() {
   const dataFilePath = path.resolve(process.cwd(), 'server-data.json');
@@ -164,9 +165,61 @@ export function socialServerPlugin() {
         });
       });
 
+      // Connection bridge to Production Express + MongoDB Backend (port 5000)
+      let backendActive = false;
+      let lastCheck = 0;
+
+      async function isBackendRunning() {
+        const now = Date.now();
+        if (now - lastCheck < 3000) return backendActive;
+        lastCheck = now;
+        try {
+          const res = await fetch('http://127.0.0.1:5000/', { signal: AbortSignal.timeout(200) });
+          backendActive = res.ok;
+          if (backendActive) {
+            console.log('🍃 [Social Server Bridge] Connected to Production Backend on port 5000 (MongoDB Atlas)!');
+          }
+        } catch {
+          backendActive = false;
+        }
+        return backendActive;
+      }
+
       // API Endpoints middleware
-      server.middlewares.use((req, res, next) => {
+      server.middlewares.use(async (req, res, next) => {
         const url = req.url.split('?')[0];
+
+        // Check if backend on port 5000 is running
+        if (url.startsWith('/api')) {
+          const running = await isBackendRunning();
+          if (running) {
+            const proxyReq = http.request({
+              hostname: '127.0.0.1',
+              port: 5000,
+              path: req.url,
+              method: req.method,
+              headers: {
+                ...req.headers,
+                host: '127.0.0.1:5000'
+              }
+            }, (proxyRes) => {
+              res.writeHead(proxyRes.statusCode, proxyRes.headers);
+              proxyRes.pipe(res);
+            });
+
+            proxyReq.on('error', () => {
+              handleLocalApi(req, res, next, url);
+            });
+
+            req.pipe(proxyReq);
+            return;
+          }
+        }
+
+        handleLocalApi(req, res, next, url);
+      });
+
+      function handleLocalApi(req, res, next, url) {
 
         // Helper to parse JSON body
         function parseBody(callback) {
@@ -379,7 +432,7 @@ export function socialServerPlugin() {
         }
 
         next();
-      });
+      }
     }
   };
 }
