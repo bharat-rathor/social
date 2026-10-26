@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { socialServerPlugin } from './viteServerPlugin.js'
 
 export default defineConfig({
+  base: process.env.VITE_BASE_PATH || (process.env.GITHUB_ACTIONS ? '/social/' : '/'),
   plugins: [react(), socialServerPlugin()],
   server: {
     host: '0.0.0.0',
